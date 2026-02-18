@@ -9,7 +9,7 @@ import {
 
 const doctorRoutes = Router();
 
-doctorRoutes.get("/api/doctor", getDoctors);
+doctorRoutes.get("/api/doctor", getDoctors);         /////////////// doctors
 doctorRoutes.get("/api/doctor/:id", getDoctorById);
 doctorRoutes.post("/api/doctor", createDoctor);
 doctorRoutes.put("/api/doctor/:id", updateDoctor);
