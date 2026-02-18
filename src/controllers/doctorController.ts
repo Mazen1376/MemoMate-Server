@@ -1,6 +1,5 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import doctorModel from "../models/doctorModel.js";
-import { request } from "http";
 
 //instead of try and catch fot every controller use asyncHandler for error handling and pass the error to error handler middleware
 
@@ -67,9 +66,7 @@ export const deleteDoctor = asyncHandler(async (req: any, res: any) => {
 
 // GET /api/doctors/:id/requests — get all requests for a doctor
 export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel
-    .findById(req.params.id)
-    .populate("requests");
+  const doctor = await doctorModel.findById(req.params.id);
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
