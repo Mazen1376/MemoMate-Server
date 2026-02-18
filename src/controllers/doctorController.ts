@@ -1,5 +1,6 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import doctorModel from "../models/doctorModel.js";
+import bcrypt from "bcryptjs";
 
 //instead of try and catch fot every controller use asyncHandler for error handling and pass the error to error handler middleware
 
@@ -25,7 +26,9 @@ export const doctorLogin = asyncHandler(async (req: any, res: any) => {
     res.status(404);
     throw new Error("Doctor not found");
   }
-  if (req.body.password !== doctor.password) {
+
+  const isMatch = await bcrypt.compare(req.body.password, doctor.password);
+  if (!isMatch) {
     res.status(401);
     throw new Error("Invalid password");
   }
@@ -33,6 +36,13 @@ export const doctorLogin = asyncHandler(async (req: any, res: any) => {
 });
 
 export const createDoctor = asyncHandler(async (req: any, res: any) => {
+  const { password } = req.body;
+  
+  if (password) {
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(password, salt);
+  }
+
   const doctor = new doctorModel(req.body);
   await doctor.save();
   res.status(201).json({ success: true, data: doctor });
@@ -40,6 +50,11 @@ export const createDoctor = asyncHandler(async (req: any, res: any) => {
 
 
 export const updateDoctor = asyncHandler(async (req: any, res: any) => {
+  if (req.body.password) {
+    const salt = await bcrypt.genSalt(10);
+    req.body.password = await bcrypt.hash(req.body.password, salt);
+  }
+
   const doctor = await doctorModel.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
     runValidators: true,
