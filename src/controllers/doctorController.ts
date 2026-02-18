@@ -69,7 +69,6 @@ export const deleteDoctor = asyncHandler(async (req: any, res: any) => {
 export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
   const doctor = await doctorModel
     .findById(req.params.id)
-    .select("requests")
     .populate("requests");
   if (!doctor) {
     res.status(404);
