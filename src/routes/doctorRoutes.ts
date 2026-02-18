@@ -1,0 +1,18 @@
+import { Router } from "express";
+import {
+  createDoctor,
+  getDoctors,
+  getDoctorById,
+  updateDoctor,
+  deleteDoctor,
+} from "../controllers/doctorController.js";
+
+const doctorRoutes = Router();
+
+doctorRoutes.get("/api/doctor", getDoctors);
+doctorRoutes.get("/api/doctor/:id", getDoctorById);
+doctorRoutes.post("/api/doctor", createDoctor);
+doctorRoutes.put("/api/doctor/:id", updateDoctor);
+doctorRoutes.delete("/api/doctor/:id", deleteDoctor);
+
+export default doctorRoutes;
