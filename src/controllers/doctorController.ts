@@ -146,11 +146,11 @@ export const addRequest = asyncHandler(async (req: any, res: any) => {
 });
 
 export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
-  const { status, requestId, patientId } = req.body;
+  const { status, patientId } = req.body;
 
-  if (!status || !requestId) {
+  if (!status || !patientId) {
     res.status(400);
-    throw new Error("Status and requestId are required in body");
+    throw new Error("Status and patientId are required in body");
   }
 
   const doctor = await doctorModel.findById(req.params.id);
@@ -160,7 +160,7 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
   }
 
   // Verify request exists for this doctor
-  if (!doctor.requests.includes(requestId)) {
+  if (!doctor.requests.includes(patientId)) {
     res.status(400);
     throw new Error("Request not found for this doctor");
   }
@@ -171,13 +171,13 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
       throw new Error("patientId is required to accept request");
     }
     // Remove from requests, add to patients
-    doctor.requests = doctor.requests.filter(id => id.toString() !== requestId.toString());
+    doctor.requests = doctor.requests.filter(id => id.toString() !== patientId.toString());
     if (!doctor.patients.includes(patientId)) {
       doctor.patients.push(patientId);
     }
   } else if (status === "declined") {
     // Just remove from requests
-    doctor.requests = doctor.requests.filter(id => id.toString() !== requestId.toString());
+    doctor.requests = doctor.requests.filter(id => id.toString() !== patientId.toString());
   } else {
     res.status(400);
     throw new Error("Invalid status. Must be 'accepted' or 'declined'");
