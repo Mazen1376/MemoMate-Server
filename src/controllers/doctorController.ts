@@ -145,6 +145,7 @@ export const addRequest = asyncHandler(async (req: any, res: any) => {
   res.status(200).json({ success: true, message: "Request added successfully" });
 });
 
+
 export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
   const { status, patientId } = req.body;
 
@@ -159,11 +160,6 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
     throw new Error("Doctor not found");
   }
 
-  // Verify request exists for this doctor
-  if (!doctor.requests.includes(patientId)) {
-    res.status(400);
-    throw new Error("Request not found for this doctor");
-  }
 
   if (status === "accepted") {
     if (!patientId) {
