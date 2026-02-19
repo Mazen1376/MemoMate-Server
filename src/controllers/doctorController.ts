@@ -179,5 +179,6 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
     throw new Error("Invalid status. Must be 'accepted' or 'declined'");
   }
 
+  await doctor.save();
   res.status(200).json({ success: true, message: `Request ${status} successfully` });
 });
