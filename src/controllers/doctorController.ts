@@ -2,16 +2,21 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcryptjs";
 
-//instead of try and catch fot every controller use asyncHandler for error handling and pass the error to error handler middleware
+// Utility to remove sensitive fields
+const sanitizeDoctor = (doctor: any) => {
+  const doctorObj = doctor.toObject ? doctor.toObject() : { ...doctor };
+  delete doctorObj.password;
+  return doctorObj;
+};
 
 export const getDoctors = asyncHandler(async (req: any, res: any) => {
-  const doctors = await doctorModel.find();
+  const doctors = await doctorModel.find().select("-password");
   res.status(200).json({ success: true, count: doctors.length, data: doctors });
 });
 
 
 export const getDoctorById = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel.findById(req.params.id);
+  const doctor = await doctorModel.findById(req.params.id).select("-password");
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
@@ -21,31 +26,51 @@ export const getDoctorById = asyncHandler(async (req: any, res: any) => {
 
 
 export const doctorLogin = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel.findOne({ email: req.body.email });
-  if (!doctor) {
-    res.status(404);
-    throw new Error("Doctor not found");
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    res.status(400);
+    throw new Error("Please provide email and password");
   }
 
-  const isMatch = await bcrypt.compare(req.body.password, doctor.password);
+  const doctor = await doctorModel.findOne({ email: email.toLowerCase() });
+  
+  if (!doctor) {
+    res.status(401);
+    throw new Error("Invalid credentials");
+  }
+
+  const isMatch = await bcrypt.compare(password, doctor.password);
   if (!isMatch) {
     res.status(401);
-    throw new Error("Invalid password");
+    throw new Error("Invalid credentials");
   }
-  res.status(200).json({ success: true, data: doctor });
+
+  res.status(200).json({ 
+    success: true, 
+    data: sanitizeDoctor(doctor) 
+  });
 });
 
 export const createDoctor = asyncHandler(async (req: any, res: any) => {
-  const { password } = req.body;
-  
-  if (password) {
-    const salt = await bcrypt.genSalt(10);
-    req.body.password = await bcrypt.hash(password, salt);
+  const { email, password } = req.body;
+
+  const existingDoctor = await doctorModel.findOne({ email: email.toLowerCase() });
+  if (existingDoctor) {
+    res.status(400);
+    throw new Error("Doctor already exists with this email");
   }
 
-  const doctor = new doctorModel(req.body);
-  await doctor.save();
-  res.status(201).json({ success: true, data: doctor });
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const doctor = await doctorModel.create({
+    ...req.body,
+    email: email.toLowerCase(),
+    password: hashedPassword,
+  });
+
+  res.status(201).json({ success: true, data: sanitizeDoctor(doctor) });
 });
 
 
@@ -55,14 +80,21 @@ export const updateDoctor = asyncHandler(async (req: any, res: any) => {
     req.body.password = await bcrypt.hash(req.body.password, salt);
   }
 
-  const doctor = await doctorModel.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-    runValidators: true,
-  });
+  if (req.body.email) {
+    req.body.email = req.body.email.toLowerCase();
+  }
+
+  const doctor = await doctorModel.findByIdAndUpdate(
+    req.params.id, 
+    req.body, 
+    { new: true, runValidators: true }
+  ).select("-password");
+
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
   }
+
   res.status(200).json({ success: true, data: doctor });
 });
 
@@ -79,7 +111,6 @@ export const deleteDoctor = asyncHandler(async (req: any, res: any) => {
 
 // ─── REQUESTS ─────────────────────────────────────────────────────────────────
 
-// GET /api/doctors/:id/requests — get all requests for a doctor
 export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
   const doctor = await doctorModel.findById(req.params.id);
   if (!doctor) {
@@ -89,37 +120,68 @@ export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
   res.status(200).json({ success: true, count: doctor.requests.length, data: doctor.requests });
 });
 
-// POST /api/doctors/:id/requests — caregiver sends a request to a doctor
 export const addRequest = asyncHandler(async (req: any, res: any) => {
+  const { id } = req.body;
+
+  if (!id) {
+    res.status(400);
+    throw new Error("Request ID (_id) is required in body");
+  }
+
   const doctor = await doctorModel.findById(req.params.id);
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
   }
 
-  await doctorModel.findByIdAndUpdate(req.params.id, {
-    $push: { requests: req.body._id },
-  });
+  if (doctor.requests.includes(id)) {
+    res.status(400);
+    throw new Error("Request already submitted to this doctor");
+  }
 
-  res.status(201).json({ success: true, data: req.body });
+  doctor.requests.push(id);
+  await doctor.save();
+
+  res.status(200).json({ success: true, message: "Request added successfully" });
 });
 
-// PUT /api/doctors/:id/requests/:requestId — accept or decline a request
 export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
-  const { status } = req.body; // "accepted" or "declined"
+  const { status, requestId, patientId } = req.body;
 
-  if(status === "accepted"){
-    await doctorModel.findByIdAndUpdate(req.params.id, {
-      $push: { patients: req.body._id },
-      $pull: { requests: req.body._id },
-    });
+  if (!status || !requestId) {
+    res.status(400);
+    throw new Error("Status and requestId are required in body");
   }
 
-  if(status === "declined"){
-    await doctorModel.findByIdAndUpdate(req.params.id, {
-      $pull: { requests: req.body._id },
-    });
+  const doctor = await doctorModel.findById(req.params.id);
+  if (!doctor) {
+    res.status(404);
+    throw new Error("Doctor not found");
   }
 
-  res.status(200).json({ success: true, data: req.body });
+  // Verify request exists for this doctor
+  if (!doctor.requests.includes(requestId)) {
+    res.status(400);
+    throw new Error("Request not found for this doctor");
+  }
+
+  if (status === "accepted") {
+    if (!patientId) {
+      res.status(400);
+      throw new Error("patientId is required to accept request");
+    }
+    // Remove from requests, add to patients
+    doctor.requests = doctor.requests.filter(id => id.toString() !== requestId.toString());
+    if (!doctor.patients.includes(patientId)) {
+      doctor.patients.push(patientId);
+    }
+  } else if (status === "declined") {
+    // Just remove from requests
+    doctor.requests = doctor.requests.filter(id => id.toString() !== requestId.toString());
+  } else {
+    res.status(400);
+    throw new Error("Invalid status. Must be 'accepted' or 'declined'");
+  }
+
+  res.status(200).json({ success: true, message: `Request ${status} successfully` });
 });
