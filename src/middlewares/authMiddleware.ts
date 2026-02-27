@@ -21,7 +21,6 @@ export const verifyToken = asyncHandler(async (req: any, res: any, next: any) =>
 
       // Extract ID from the token
       req.decodedToken = decoded;
-      console.log(req.decodedToken);
 
       next();
     } catch (error) {

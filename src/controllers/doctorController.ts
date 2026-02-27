@@ -1,20 +1,10 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import { generateToken } from "../helpers/generateToken.js";
+import { sanitizeDoctor } from "../utils/sanitize.js";
 
-const generateToken = (id: string) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || "fallback_secret", {
-    expiresIn: "30d",
-  });
-};
 
-// Utility to remove sensitive fields
-const sanitizeDoctor = (doctor: any) => {
-  const doctorObj = doctor.toObject ? doctor.toObject() : { ...doctor };
-  delete doctorObj.password;
-  return doctorObj;
-};
 
 export const getDoctors = asyncHandler(async (req: any, res: any) => {
   const doctors = await doctorModel.find().select("-password");

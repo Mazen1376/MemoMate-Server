@@ -15,11 +15,13 @@ import { verifyToken } from "../middlewares/authMiddleware.js";
 
 const doctorRoutes = Router();
 
-// DOCTOR CRUD
-doctorRoutes.get("/api/doctor", getDoctors);
-doctorRoutes.get("/api/doctor/id", verifyToken, getDoctorById);
+// DOCTOR AUTH
 doctorRoutes.post("/api/doctor", createDoctor);
 doctorRoutes.post("/api/doctor/login", doctorLogin);
+
+// DOCTOR CRUD
+doctorRoutes.get("/api/doctor", verifyToken, getDoctors);
+doctorRoutes.get("/api/doctor/id", verifyToken, getDoctorById);
 doctorRoutes.put("/api/doctor", verifyToken, updateDoctor);
 doctorRoutes.delete("/api/doctor", verifyToken, deleteDoctor);
 
