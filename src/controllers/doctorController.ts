@@ -23,7 +23,7 @@ export const getDoctors = asyncHandler(async (req: any, res: any) => {
 
 
 export const getDoctorById = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel.findById(req.decodedToken).select("-password");
+  const doctor = await doctorModel.findById(req.decodedToken.id).select("-password");
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
@@ -133,11 +133,11 @@ export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
 });
 
 export const addRequest = asyncHandler(async (req: any, res: any) => {
-  const { id } = req.body;
+  const { patientId } = req.body;
 
-  if (!id) {
+  if (!patientId) {
     res.status(400);
-    throw new Error("Request ID (_id) is required in body");
+    throw new Error("Patient ID is required in body");
   }
 
   const doctor = await doctorModel.findById(req.decodedToken.id);
@@ -146,12 +146,12 @@ export const addRequest = asyncHandler(async (req: any, res: any) => {
     throw new Error("Doctor not found");
   }
 
-  if (doctor.requests.includes(id)) {
+  if (doctor.requests.includes(patientId)) {
     res.status(400);
     throw new Error("Request already submitted to this doctor");
   }
 
-  doctor.requests.push(id);
+  doctor.requests.push(patientId);
   await doctor.save();
 
   res.status(200).json({ success: true, message: "Request added successfully" });
@@ -178,13 +178,13 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
       res.status(400);
       throw new Error("patientId is required to accept request");
     }
-    // Remove from requests, add to patients
+    // remove from requests, add to patients
     doctor.requests = doctor.requests.filter(id => id.toString() !== patientId.toString());
     if (!doctor.patients.includes(patientId)) {
       doctor.patients.push(patientId);
     }
   } else if (status === "declined") {
-    // Just remove from requests
+    // remove from requests
     doctor.requests = doctor.requests.filter(id => id.toString() !== patientId.toString());
   } else {
     res.status(400);
