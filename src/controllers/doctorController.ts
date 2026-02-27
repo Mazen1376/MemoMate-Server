@@ -1,6 +1,13 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const generateToken = (id: string) => {
+  return jwt.sign({ id }, process.env.JWT_SECRET || "fallback_secret", {
+    expiresIn: "30d",
+  });
+};
 
 // Utility to remove sensitive fields
 const sanitizeDoctor = (doctor: any) => {
@@ -16,7 +23,7 @@ export const getDoctors = asyncHandler(async (req: any, res: any) => {
 
 
 export const getDoctorById = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel.findById(req.params.id).select("-password");
+  const doctor = await doctorModel.findById(req.decodedToken).select("-password");
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
@@ -46,8 +53,11 @@ export const doctorLogin = asyncHandler(async (req: any, res: any) => {
     throw new Error("Invalid credentials");
   }
 
+  const token = generateToken(doctor._id.toString());
+
   res.status(200).json({ 
     success: true, 
+    token,
     data: sanitizeDoctor(doctor) 
   });
 });
@@ -70,7 +80,9 @@ export const createDoctor = asyncHandler(async (req: any, res: any) => {
     password: hashedPassword,
   });
 
-  res.status(201).json({ success: true, data: sanitizeDoctor(doctor) });
+  const token = generateToken(doctor._id.toString());
+
+  res.status(201).json({ success: true, token, data: sanitizeDoctor(doctor) });
 });
 
 
@@ -85,7 +97,7 @@ export const updateDoctor = asyncHandler(async (req: any, res: any) => {
   }
 
   const doctor = await doctorModel.findByIdAndUpdate(
-    req.params.id, 
+    req.decodedToken.id, 
     req.body, 
     { new: true, runValidators: true }
   ).select("-password");
@@ -100,7 +112,7 @@ export const updateDoctor = asyncHandler(async (req: any, res: any) => {
 
 
 export const deleteDoctor = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel.findByIdAndDelete(req.params.id);
+  const doctor = await doctorModel.findByIdAndDelete(req.decodedToken.id);
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
@@ -112,7 +124,7 @@ export const deleteDoctor = asyncHandler(async (req: any, res: any) => {
 // ─── REQUESTS ─────────────────────────────────────────────────────────────────
 
 export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
-  const doctor = await doctorModel.findById(req.params.id);
+  const doctor = await doctorModel.findById(req.decodedToken.id);
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
@@ -128,7 +140,7 @@ export const addRequest = asyncHandler(async (req: any, res: any) => {
     throw new Error("Request ID (_id) is required in body");
   }
 
-  const doctor = await doctorModel.findById(req.params.id);
+  const doctor = await doctorModel.findById(req.decodedToken.id);
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
@@ -154,7 +166,7 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
     throw new Error("Status and patientId are required in body");
   }
 
-  const doctor = await doctorModel.findById(req.params.id);
+  const doctor = await doctorModel.findById(req.decodedToken.id);
   if (!doctor) {
     res.status(404);
     throw new Error("Doctor not found");
