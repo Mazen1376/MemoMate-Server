@@ -6,13 +6,11 @@ const patientSchema = new mongoose.Schema(
     caregiverName:         { type: String, required: true },
     email:                 { type: String, required: true },
     password:              { type: String, required: true },
-    caregiverGender:       { type: String, required: true, enum: ["male", "female"] },
     relationship:          { type: String, required: true },
     caregiverPhone:        { type: String, required: true },
 
-    // ─── Patient Info ──────────────────────────────────────────────────────────
+    // ─── Patient Info ────────────────────────────────────────────────────────── DATA FOR AI
     patientName:     { type: String, required: true },
-    patientGender:   { type: String, required: true, enum: ["male", "female"] },
     age:             { type: Number, required: true },
     about:           { type: String, default: "" },
     weight:          { type: Number, required: true },

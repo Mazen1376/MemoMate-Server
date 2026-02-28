@@ -72,7 +72,7 @@ export const getPatients = asyncHandler(async (req: any, res: any) => {
   res.status(200).json({ success: true, count: patients.length, data: patients });
 });
 
-// GET /api/patients/me  (protected — own profile from token)
+// GET /api/patients/id  (protected — own profile from token)
 export const getPatientById = asyncHandler(async (req: any, res: any) => {
   const patient = await patientModel
     .findById(req.decodedToken.id)
