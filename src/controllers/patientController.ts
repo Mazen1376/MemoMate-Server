@@ -3,9 +3,7 @@ import patientModel from "../models/patientModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../helpers/generateToken.js";
 import { sanitizePatient } from "../utils/sanitize.js";
-
-
-
+import { reverseGeocode } from "../helpers/reverseGeocode.js";
 
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -189,5 +187,210 @@ export const deleteMedicine = asyncHandler(async (req: any, res: any) => {
     success: true,
     message: "Medicine removed successfully",
     data:    patient.medicines,
+  });
+});
+
+
+// ─── Family Tree ─────────────────────────────────────────────────────────────────
+
+// GET /api/patients/familyTree  (protected)
+export const getFamilyTree = asyncHandler(async (req: any, res: any) => {
+  const patient = await patientModel.findById(req.decodedToken.id);
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+  res.status(200).json({
+    success: true,
+    count: patient.familyTree.length,
+    data:  patient.familyTree,
+  });
+});
+
+// POST /api/patients/familyTree  (protected — add a family member)
+export const addFamilyMember = asyncHandler(async (req: any, res: any) => {
+  const { familyMemberName, relationshipToPatient, familyMemberImage } = req.body;
+
+  if (!familyMemberName || !relationshipToPatient) {
+    res.status(400);
+    throw new Error("familyMemberName and relationshipToPatient are all required");
+  }
+
+  const patient = await patientModel.findById(req.decodedToken.id);
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+
+  patient.familyTree.push({ familyMemberName, relationshipToPatient, familyMemberImage });
+  await patient.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Family member added successfully",
+    data:    patient.familyTree,
+  });
+});
+
+/* // DELETE /api/patients/familyTree/:familyMemberId  (protected — remove a family member)
+export const deleteFamilyMember = asyncHandler(async (req: any, res: any) => {
+  const { familyMemberId } = req.params;
+
+  const patient = await patientModel.findById(req.decodedToken.id);
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+
+  const index = patient.familyTree.findIndex(
+    (fm: any) => fm._id.toString() === familyMemberId
+  );
+
+  if (index === -1) {
+    res.status(404);
+    throw new Error("Family member not found");
+  }
+
+  patient.familyTree.splice(index, 1);
+  await patient.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Family member removed successfully",
+    data:    patient.familyTree,
+  });
+}
+);
+ */
+
+// ─── Doctors ─────────────────────────────────────────────────────────────────
+
+// GET /api/patients/doctors  (protected)
+export const getPatientDoctors = asyncHandler(async (req: any, res: any) => {
+  const patient = await patientModel.findById(req.decodedToken.id);
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+  res.status(200).json({
+    success: true,
+    count: patient.doctors.length,
+    data:  patient.doctors,
+  });
+});
+
+// POST /api/patients/doctors  (protected — send a request to a doctor)
+export const sendRequestToDoctor = asyncHandler(async (req: any, res: any) => {
+  const { doctorId } = req.params;
+
+  if (!doctorId) {
+    res.status(400);
+    throw new Error("doctorId is required");
+  }
+
+  const patient = await patientModel.findById(req.decodedToken.id);
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+
+  patient.doctors.push(doctorId);
+  await patient.save();
+
+  res.status(201).json({
+    success: true,
+    message: "Request sent to doctor successfully",
+    data:    patient.doctors,
+  });
+});
+
+/* // DELETE /api/patients/doctors/:doctorId  (protected — remove a doctor)
+export const deletePatientDoctor = asyncHandler(async (req: any, res: any) => {
+  const { doctorId } = req.params;
+
+  const patient = await patientModel.findById(req.decodedToken.id);
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+
+  const index = patient.doctors.findIndex(
+    (d: any) => d._id.toString() === doctorId
+  );
+
+  if (index === -1) {
+    res.status(404);
+    throw new Error("Doctor not found");
+  }
+
+  patient.doctors.splice(index, 1);
+  await patient.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Doctor removed successfully",
+    data:    patient.doctors,
+  });
+}); */
+
+// ─── Location ────────────────────────────────────────────────────────────────
+
+// PUT /api/patient/location  (protected — update own location)
+export const updateLocation = asyncHandler(async (req: any, res: any) => {
+  const { lat, lng } = req.body;
+
+  if (lat === undefined || lat === null || lng === undefined || lng === null) {
+    res.status(400);
+    throw new Error("lat and lng are required");
+  }
+
+  if (typeof lat !== "number" || typeof lng !== "number") {
+    res.status(400);
+    throw new Error("lat and lng must be numbers");
+  }
+
+  // Reverse-geocode to get city & country (gracefully returns nulls on failure)
+  const { city, country } = await reverseGeocode(lat, lng);
+
+  const patient = await patientModel.findByIdAndUpdate(
+    req.decodedToken.id,
+    {
+      lastLocation: {
+        lat,
+        lng,
+        city,
+        country,
+        updatedAt: new Date(),
+      },
+    },
+    { new: true, runValidators: true }
+  ).select("-password");
+
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+
+  res.status(200).json({
+    success: true,
+    message: "Location updated successfully",
+    data:    patient.lastLocation,
+  });
+});
+
+// GET /api/patient/location  (protected — get own last location)
+export const getLocation = asyncHandler(async (req: any, res: any) => {
+  const patient = await patientModel
+    .findById(req.decodedToken.id)
+    .select("lastLocation");
+
+  if (!patient) {
+    res.status(404);
+    throw new Error("Patient not found");
+  }
+
+  res.status(200).json({
+    success: true,
+    data: patient.lastLocation,
   });
 });

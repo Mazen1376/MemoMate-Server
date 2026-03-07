@@ -11,11 +11,32 @@ const patientSchema = new mongoose.Schema(
 
     // ─── Patient Info ────────────────────────────────────────────────────────── DATA FOR AI
     patientName:     { type: String, required: true },
+    patientImage:    { type: String, default: "" },
     age:             { type: Number, required: true },
     about:           { type: String, default: "" },
     weight:          { type: Number, required: true },
     address:         { type: String, required: true },
     patientPhone:    { type: String, required: true },
+    familyTree:      { 
+      type: [
+        {
+          familyMemberName:       { type: String, required: true },
+          relationshipToPatient : { type: String, required: true },
+          familyMemberImage:      { type: String, default: "" },
+        }
+      ],
+      default: [] 
+    },
+    doctors:         { type: [mongoose.Schema.Types.ObjectId], ref: "doctor", default: [] },
+
+    // ─── Location ──────────────────────────────────────────────────────────────
+    lastLocation: {
+      lat:       { type: Number, default: null },
+      lng:       { type: Number, default: null },
+      city:      { type: String, default: null },
+      country:   { type: String, default: null },
+      updatedAt: { type: Date,   default: null },
+    },
 
     // ─── Medical Info ──────────────────────────────────────────────────────────
     diseaseHistory: { type: [String], default: [] },
