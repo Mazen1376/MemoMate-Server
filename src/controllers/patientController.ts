@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "../helpers/generateToken.js";
 import { sanitizePatient } from "../utils/sanitize.js";
 import { reverseGeocode } from "../helpers/reverseGeocode.js";
+import doctorModel from "../models/doctorModel.js";
 
 // ─── Auth ──────────────────────────────────────────────────────────────────────
 
@@ -294,13 +295,30 @@ export const sendRequestToDoctor = asyncHandler(async (req: any, res: any) => {
     throw new Error("Patient not found");
   }
 
-  patient.doctors.push(doctorId);
-  await patient.save();
+  const doctor = await doctorModel.findById(doctorId);
+  if (!doctor) {
+    res.status(404);
+    throw new Error("Doctor not found");
+  }
+
+  // Check if request already sent or already a patient
+  if (doctor.requests.includes(patient._id)) {
+      res.status(400);
+      throw new Error("Request already sent to this doctor");
+  }
+  
+  if (doctor.patients.includes(patient._id)) {
+      res.status(400);
+      throw new Error("You are already a patient of this doctor");
+  }
+
+  doctor.requests.push(patient._id);
+  await doctor.save();
 
   res.status(201).json({
     success: true,
     message: "Request sent to doctor successfully",
-    data:    patient.doctors,
+    data:    doctor.requests,
   });
 });
 

@@ -3,7 +3,7 @@ import doctorModel from "../models/doctorModel.js";
 import bcrypt from "bcryptjs";
 import { generateToken } from "../helpers/generateToken.js";
 import { sanitizeDoctor } from "../utils/sanitize.js";
-
+import patientModel from "../models/patientModel.js";
 
 
 export const getDoctors = asyncHandler(async (req: any, res: any) => {
@@ -162,20 +162,28 @@ export const updateRequestStatus = asyncHandler(async (req: any, res: any) => {
     throw new Error("Doctor not found");
   }
 
-
   if (status === "accepted") {
-    if (!patientId) {
-      res.status(400);
-      throw new Error("patientId is required to accept request");
-    }
     // remove from requests, add to patients
-    doctor.requests = doctor.requests.filter(id => id.toString() !== patientId.toString());
+    doctor.requests = doctor.requests.filter((id: any) => id.toString() !== patientId.toString());
     if (!doctor.patients.includes(patientId)) {
       doctor.patients.push(patientId);
     }
+    
+    // add doctor to patient's doctors array
+    const patient = await patientModel.findById(patientId);
+    if(patient) {
+        if(!patient.doctors.includes(doctor._id)) {
+            patient.doctors.push(doctor._id);
+            await patient.save();
+        }
+    } else {
+        res.status(404);
+        throw new Error("Patient not found");
+    }
+
   } else if (status === "declined") {
     // remove from requests
-    doctor.requests = doctor.requests.filter(id => id.toString() !== patientId.toString());
+    doctor.requests = doctor.requests.filter((id: any) => id.toString() !== patientId.toString());
   } else {
     res.status(400);
     throw new Error("Invalid status. Must be 'accepted' or 'declined'");

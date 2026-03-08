@@ -11,7 +11,7 @@ const doctorSchema = new mongoose.Schema(
     experience: { type: String, required: true },
     about: { type: String, required: true },
     available: { type: Boolean, default: true },
-    requests: [{ type: mongoose.Schema.Types.ObjectId, ref: "request" }],
+    requests: [{ type: mongoose.Schema.Types.ObjectId, ref: "patient" }],
     patients: [{ type: mongoose.Schema.Types.ObjectId, ref: "patient" }],
   },
   { timestamps: true }
