@@ -19,7 +19,6 @@ import {
   deleteFamilyMember,
 } from "../controllers/patientController.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
-import { deleteDoctor } from "../controllers/doctorController.js";
 
 const patientRoutes = Router();
 
@@ -28,27 +27,27 @@ patientRoutes.post("/api/patient/register", registerPatient);
 patientRoutes.post("/api/patient/login", patientLogin);
 
 // ─── Patient CRUD ────────────────────────────────────────────────────────────── DONE
-patientRoutes.get("/api/patient", getPatients);                           // for admin (not implemented)
-patientRoutes.get("/api/patient/id", verifyToken, getPatientById);        // protected — own profile
-patientRoutes.put("/api/patient", verifyToken, updatePatient);            // protected — update own profile
-patientRoutes.delete("/api/patient", verifyToken, deletePatient);         // protected — delete own account
+patientRoutes.get("/api/patient", getPatients);
+patientRoutes.get("/api/patient/id", verifyToken, getPatientById);
+patientRoutes.put("/api/patient", verifyToken, updatePatient);
+patientRoutes.delete("/api/patient", verifyToken, deletePatient);
 
 // ─── Medicines ───────────────────────────────────────────────────────────────── DONE
-patientRoutes.get("/api/patient/medicines", verifyToken, getMedicines);                        // get all medicines
-patientRoutes.post("/api/patient/medicines", verifyToken, addMedicine);                        // add a medicine
-patientRoutes.delete("/api/patient/medicines/:medicineId", verifyToken, deleteMedicine);       // remove a medicine
+patientRoutes.get("/api/patient/medicines", verifyToken, getMedicines);
+patientRoutes.post("/api/patient/medicines", verifyToken, addMedicine);
+patientRoutes.delete("/api/patient/medicines/:medicineId", verifyToken, deleteMedicine);
 
 // ─── Family Tree ───────────────────────────────────────────────────────────────── DONE
 patientRoutes.get("/api/patient/familyTree", verifyToken, getFamilyTree);
 patientRoutes.post("/api/patient/familyTree", verifyToken, addFamilyMember);
 patientRoutes.delete("/api/patient/familyTree/:memberId", verifyToken, deleteFamilyMember);
 
-// ─── Doctors ─────────────────────────────────────────────────────────────────
+// ─── Doctors ───────────────────────────────────────────────────────────────── DONE
 patientRoutes.get("/api/patient/doctors", verifyToken, getPatientDoctors);
 patientRoutes.post("/api/patient/doctors/:doctorId", verifyToken, sendRequestToDoctor);
 patientRoutes.delete("/api/patient/doctors/:doctorId", verifyToken, deletePatientDoctor);
 
-// ─── Location ────────────────────────────────────────────────────────────────
+// ─── Location ──────────────────────────────────────────────────────────────── DONE (not tested)
 patientRoutes.put("/api/patient/location", verifyToken, updateLocation);
 patientRoutes.get("/api/patient/location", verifyToken, getLocation);
 
