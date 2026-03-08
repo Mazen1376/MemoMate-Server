@@ -26,8 +26,8 @@ doctorRoutes.put("/api/doctor", verifyToken, updateDoctor);
 doctorRoutes.delete("/api/doctor", verifyToken, deleteDoctor);
 
 // REQUESTS
-doctorRoutes.get("/api/doctor/requests", verifyToken, getDoctorRequests);       // get all requests
-doctorRoutes.post("/api/doctor/requests", verifyToken, addRequest);             // add a request (push request id)
-doctorRoutes.put("/api/doctor/requests", verifyToken, updateRequestStatus);     // accept or decline
+doctorRoutes.get("/api/doctor/requests", verifyToken, getDoctorRequests);
+doctorRoutes.post("/api/doctor/requests", verifyToken, addRequest);
+doctorRoutes.put("/api/doctor/requests", verifyToken, updateRequestStatus);
 
 export default doctorRoutes;
