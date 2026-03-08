@@ -322,7 +322,7 @@ export const sendRequestToDoctor = asyncHandler(async (req: any, res: any) => {
   });
 });
 
-/* // DELETE /api/patients/doctors/:doctorId  (protected — remove a doctor)
+// DELETE /api/patient/doctors/:doctorId  (protected — remove a doctor)
 export const deletePatientDoctor = asyncHandler(async (req: any, res: any) => {
   const { doctorId } = req.params;
 
@@ -332,24 +332,32 @@ export const deletePatientDoctor = asyncHandler(async (req: any, res: any) => {
     throw new Error("Patient not found");
   }
 
-  const index = patient.doctors.findIndex(
-    (d: any) => d._id.toString() === doctorId
-  );
+  // Remove doctor from patient's doctors array
+  const initialDoctorCount = patient.doctors.length;
+  patient.doctors = patient.doctors.filter((d: any) => d.toString() !== doctorId);
 
-  if (index === -1) {
+  if (patient.doctors.length === initialDoctorCount) {
     res.status(404);
-    throw new Error("Doctor not found");
+    throw new Error("Doctor not found in your list");
   }
 
-  patient.doctors.splice(index, 1);
   await patient.save();
+
+  // Remove patient from doctor's patients array as well
+  const doctor = await doctorModel.findById(doctorId);
+  if (doctor) {
+    doctor.patients = doctor.patients.filter(
+      (p: any) => p.toString() !== patient._id.toString()
+    );
+    await doctor.save();
+  }
 
   res.status(200).json({
     success: true,
     message: "Doctor removed successfully",
     data:    patient.doctors,
   });
-}); */
+});
 
 // ─── Location ────────────────────────────────────────────────────────────────
 

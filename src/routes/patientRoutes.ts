@@ -13,6 +13,7 @@ import {
   addFamilyMember,
   getPatientDoctors,
   sendRequestToDoctor,
+  deletePatientDoctor,
   updateLocation,
   getLocation,
   deleteFamilyMember,
@@ -45,7 +46,10 @@ patientRoutes.delete("/api/patient/familyTree/:memberId", verifyToken, deleteFam
 // ─── Doctors ─────────────────────────────────────────────────────────────────
 patientRoutes.get("/api/patient/doctors", verifyToken, getPatientDoctors);
 patientRoutes.post("/api/patient/doctors/:doctorId", verifyToken, sendRequestToDoctor);
-//patientRoutes.delete("/api/patient/doctors", verifyToken, deletePatientDoctor);
+patientRoutes.delete("/api/patient/doctors/:doctorId", verifyToken, deletePatientDoctor);
 
+// ─── Location ────────────────────────────────────────────────────────────────
+patientRoutes.put("/api/patient/location", verifyToken, updateLocation);
+patientRoutes.get("/api/patient/location", verifyToken, getLocation);
 
 export default patientRoutes;
