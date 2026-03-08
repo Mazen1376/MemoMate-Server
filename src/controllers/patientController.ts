@@ -233,7 +233,7 @@ export const addFamilyMember = asyncHandler(async (req: any, res: any) => {
   });
 });
 
-/* // DELETE /api/patients/familyTree/:familyMemberId  (protected — remove a family member)
+ // DELETE /api/patients/familyTree/:familyMemberId  (protected — remove a family member)
 export const deleteFamilyMember = asyncHandler(async (req: any, res: any) => {
   const { familyMemberId } = req.params;
 
@@ -262,7 +262,7 @@ export const deleteFamilyMember = asyncHandler(async (req: any, res: any) => {
   });
 }
 );
- */
+
 
 // ─── Doctors ─────────────────────────────────────────────────────────────────
 

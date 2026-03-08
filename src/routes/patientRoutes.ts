@@ -15,6 +15,7 @@ import {
   sendRequestToDoctor,
   updateLocation,
   getLocation,
+  deleteFamilyMember,
 } from "../controllers/patientController.js";
 import { verifyToken } from "../middlewares/authMiddleware.js";
 import { deleteDoctor } from "../controllers/doctorController.js";
@@ -39,7 +40,7 @@ patientRoutes.delete("/api/patient/medicines/:medicineId", verifyToken, deleteMe
 // ─── Family Tree ───────────────────────────────────────────────────────────────── DONE
 patientRoutes.get("/api/patient/familyTree", verifyToken, getFamilyTree);
 patientRoutes.post("/api/patient/familyTree", verifyToken, addFamilyMember);
-//patientRoutes.delete("/api/patient/familyTree", verifyToken, deleteFamilyMember);
+patientRoutes.delete("/api/patient/familyTree/:memberId", verifyToken, deleteFamilyMember);
 
 // ─── Doctors ─────────────────────────────────────────────────────────────────
 patientRoutes.get("/api/patient/doctors", verifyToken, getPatientDoctors);
