@@ -233,9 +233,9 @@ export const addFamilyMember = asyncHandler(async (req: any, res: any) => {
   });
 });
 
- // DELETE /api/patients/familyTree/:familyMemberId  (protected — remove a family member)
+ // DELETE /api/patients/familyTree/:memberId  (protected — remove a family member)
 export const deleteFamilyMember = asyncHandler(async (req: any, res: any) => {
-  const { familyMemberId } = req.params;
+  const { memberId } = req.params;
 
   const patient = await patientModel.findById(req.decodedToken.id);
   if (!patient) {
@@ -244,7 +244,7 @@ export const deleteFamilyMember = asyncHandler(async (req: any, res: any) => {
   }
 
   const index = patient.familyTree.findIndex(
-    (fm: any) => fm._id.toString() === familyMemberId
+    (fm: any) => fm._id.toString() === memberId
   );
 
   if (index === -1) {
