@@ -6,7 +6,7 @@ export const verifyToken = asyncHandler(async (req: any, res: any, next: any) =>
   let token;
 
   if (
-    req.headers.authorization &&
+    req.headers.authorization && 
     req.headers.authorization.startsWith('Bearer')
   ) {
     try {

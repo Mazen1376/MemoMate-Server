@@ -361,7 +361,7 @@ export const deletePatientDoctor = asyncHandler(async (req: any, res: any) => {
 
 // ─── Location ────────────────────────────────────────────────────────────────
 
-// PUT /api/patient/location  (protected — update own location)
+// PUT /api/patient/location  (protected — update own location) 
 export const updateLocation = asyncHandler(async (req: any, res: any) => {
   const { lat, lng } = req.body;
 

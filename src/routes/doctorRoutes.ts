@@ -17,7 +17,7 @@ const doctorRoutes = Router();
 
 // DOCTOR AUTH
 doctorRoutes.post("/api/doctor", createDoctor);
-doctorRoutes.post("/api/doctor/login", doctorLogin);
+doctorRoutes.post("/api/doctor/login", doctorLogin); 
 
 // DOCTOR CRUD
 doctorRoutes.get("/api/doctor", verifyToken, getDoctors);

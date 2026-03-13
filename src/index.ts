@@ -26,7 +26,7 @@ initSocket(server);
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// Routes 
 app.use(doctorRoutes);
 app.use(patientRoutes);
 app.use(messageRoutes);
