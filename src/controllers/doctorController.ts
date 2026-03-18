@@ -111,6 +111,22 @@ export const deleteDoctor = asyncHandler(async (req: any, res: any) => {
 });
 
 
+// ─── PATIENTS ─────────────────────────────────────────────────────────────────
+
+export const getDoctorPatients = asyncHandler(async (req: any, res: any) => {
+  const doctor = await doctorModel.findById(req.decodedToken.id);
+  if (!doctor) {
+    res.status(404);
+    throw new Error("Doctor not found");
+  }
+  await doctor.populate("patients", "-password");
+  res.status(200).json({
+    success: true,
+    count: doctor.patients.length,
+    data: doctor.patients,
+  });
+});
+
 // ─── REQUESTS ─────────────────────────────────────────────────────────────────
 
 export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
@@ -119,8 +135,8 @@ export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
     res.status(404);
     throw new Error("Doctor not found");
   }
-  const patientRequestsData = await doctor.populate("requests");
-  res.status(200).json({ success: true, count: doctor.requests.length, data: patientRequestsData });
+  await doctor.populate("requests");
+  res.status(200).json({ success: true, count: doctor.requests.length, data: doctor.requests });
 });
 
 export const addRequest = asyncHandler(async (req: any, res: any) => {
