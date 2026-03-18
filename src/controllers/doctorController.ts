@@ -119,7 +119,8 @@ export const getDoctorRequests = asyncHandler(async (req: any, res: any) => {
     res.status(404);
     throw new Error("Doctor not found");
   }
-  res.status(200).json({ success: true, count: doctor.requests.length, data: doctor.requests });
+  const patientRequestsData = await doctor.populate("requests");
+  res.status(200).json({ success: true, count: doctor.requests.length, data: patientRequestsData });
 });
 
 export const addRequest = asyncHandler(async (req: any, res: any) => {
