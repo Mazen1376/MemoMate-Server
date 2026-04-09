@@ -34,6 +34,5 @@ doctorRoutes.get("/api/doctor/requests", verifyToken, getDoctorRequests);
 doctorRoutes.post("/api/doctor/requests", verifyToken, addRequest);
 doctorRoutes.put("/api/doctor/requests", verifyToken, updateRequestStatus);
 
-//
 
 export default doctorRoutes;
