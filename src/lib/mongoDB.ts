@@ -15,7 +15,9 @@ export const connectDB = async () => {
 
     const db = await mongoose.connect(mongoUri);
     isConnected = db.connections[0].readyState === 1;
-    console.log(`MongoDB Connected: ${db.connection.host}`);
+    const dbName = db.connection.name;
+    const host = db.connection.host;
+    console.log(`MongoDB Connected: ${host} | Database: ${dbName}`);
   } catch (error) {
     console.error(`Error connecting to MongoDB: ${(error as Error).message}`);
     // In serverless, it's often better to throw here so the function fails immediately
